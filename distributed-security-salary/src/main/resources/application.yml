@@ -1,0 +1,28 @@
+#客户携带申请到的access_token访问distributed-security-salary中的服务
+#distributed-security-salary将检验access_token的合法性，验证合法后才返回资源信息
+server:
+  port: 53021
+  servlet:
+    context-path: /resource
+
+spring:
+  application:
+    name: salary-service
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh,health,info,env
+logging:
+  level:
+    root: debug
+    org:
+      springframwork:
+        web: info

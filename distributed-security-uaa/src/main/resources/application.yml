@@ -1,0 +1,21 @@
+#客户请求distributed-security-uaa授权服务申请access_token
+server:
+  port: 53020
+  servlet:
+    context-path: /uaa
+
+spring:
+  application:
+    name: uaa-service
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    throw-exception-if-no-handler-found: true
+  resources:
+    add-mappings: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh,health,info,env
