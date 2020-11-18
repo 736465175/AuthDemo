@@ -9,6 +9,8 @@ import org.springframework.security.oauth2.config.annotation.web.configurers.Aut
 
 //在使用OAuth2时，Spring Security也提供了一个类似的适配器来帮助我们完成配置
 //这三个配置也是整个授权认证服务中最核心的配置
+//AuthorizationServerConfigurerAdapter要求配置以下几个类，这几个类是由Spring创建的独立的配置
+//        对象，它们会被Spring传入AuthorizationServerConfigurer中进行配置
 @Configuration
 public class MyAuthorizationConfig extends AuthorizationServerConfigurerAdapter {
 
@@ -30,8 +32,14 @@ public class MyAuthorizationConfig extends AuthorizationServerConfigurerAdapter 
          authrizedGrantTypes：此客户端可以使用的授权类型，默认为空。在微信登录中，只支持authorization_code这一种。
          authorities：此客户端可以使用的权限(基于Spring Security authorities)
          redirectUris：回调地址。授权服务会往该回调地址推送此客户端相关的信息。
+
+     Client Details客户端详情，能够在应用程序运行的时候进行更新，可以通过访问底层的存储服务(例如
+     访问mysql，就提供了JdbcClientDetailsService)或者通过自己实现ClientRegisterationService接口(同
+     时也可以实现ClientDetailsService接口)来进行定制。
+
+     示例中我们暂时使用内存方式存储客户端详情信息，配置如下
     */
-    @Override
+    @Override  .....
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()   //内存配置的方式配置用户信息
             .withClient("c1") //clientId
@@ -50,6 +58,7 @@ public class MyAuthorizationConfig extends AuthorizationServerConfigurerAdapter 
 
 
     //用来配置令牌（token）的访问端点和令牌服务 (tokenservices)
+    //AuthorizationServerEndpointsConfigurer这个对象的实例可以完成令牌服务以及令牌服务各个endpoint配置
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
         super.configure(endpoints);
