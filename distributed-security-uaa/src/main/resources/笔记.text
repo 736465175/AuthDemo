@@ -1,0 +1,78 @@
+1.这种模式是最方便但是也最不安全的模式，代表了授权服务器对客户端的完全互信。因此，这种模式一
+  般可以用在授权服务器对客户端完全信任的场景，例如内部系统或者协议合作方系统对接
+  http://localhost:53020/uaa/oauth/token
+  参数
+    client_id:c1
+    client_secret:secret
+    grant_type:client_credentials
+  返回
+    {
+    	"access_token": "1febf794-288c-4df9-bd0a-edc9bfd9a025",
+    	"token_type": "bearer",
+    	"expires_in": 7199,
+    	"scope": "all"
+    }
+
+2.这种模式用户会把用户名和密码直接泄漏给客户端，代表了资源拥有者和授权服务器对客户端的绝
+  对互信，相信客户端不会做坏事。一般适用于内部开发的客户端的场景
+ /uaa/oauth/token?
+ client_id=c1&client_secret=secret&grant_type=password&username=admin&password
+ =admin
+
+ {
+ 	"access_token": "b9d1c1d0-09a4-4698-b769-77735e5c81ef",
+ 	"token_type": "bearer",
+ 	"refresh_token": "6ac14f67-df8e-4991-8cab-c8764d2c522e",
+ 	"expires_in": 7199,
+ 	"scope": "all"
+ }
+
+3、简化模式 implicit：
+    (1)客户端引导用户，直接访问授权服务器的授权申请地址： http://localhost:53020/uaa/oauth/autho
+    rize?client_id=c1&response_type=token&scope=all&redirect_uri=https://www.baidu.com/。此时，
+    会跳转到授权服务器的登录页面，需要用户自己输入用户名密码，进行登录
+    (2)用户使用admin/admin登录后，进入授权确认页面
+    (3)用户在页面选择同意，并提交。
+    (4)此时页面就会跳转到指定的redirect uri(我们配置的www.baidu.com。此地址需要授权服务器预先配
+    置，同时客户端需要提交参数)。在跳转地址上，直接带上了access_token，这个就是访问令牌。
+    https://www.baidu.com/#access_token=b9d1c1d0-09a4-4698-b769-77735e5c81ef&token_type=bearer&expires_in=3953
+    这种方案下，一般redirect uri会配置成客户端自己的一个相应地址。这个相应地址接收到授权服务器推
+    送过来的访问令牌后，就可以将访问令牌在本地进行保存，然后在需要调用资源服务时，再拿出来通过
+    资源服务的认证。
+    注意下，这种模式下，access_token并不是以Get请求参数的形式推送的，而是以#fragmenet的
+    方式返回的。
+    这种模式下，oauth三方的数据已经进行了隔离。这种模式一般用于没有服务端的第三方单页面应用，
+    这样可以在JS里直接相应access_token。
+
+4、授权码模式 authorization_code ：
+    相比上面的简化模式，就是在后面第4步，授权服务器先返回给客户端一个授权码，也就是
+    authorization_code。客户端拿到授权码后，再向授权服务器申请令牌
+测试流程如下：
+(1)用户申请access_token时(访问地址http://localhost:53020/uaa/oauth/authorize?client_id=c1&res
+ponse_type=code&scope=all&redirect_uri=https://www.baidu.com/)，会首先跳转登录页面，需要用
+户进行登录。--微信中，将这个登录页面定制成了扫二维码登录的页面。
+(2)使用admin用户登录完成后，会弹出默认的授权页面。--微信将授权页面进行了定制
+(3)选择同意后，会跳转到我们指定的百度网页，并带上了授权码code。--实际项目中应该是指向自己客
+户端工程的一个路径，后台获取code后保存起来
+https://www.baidu.com/?code=yMEdkB
+拿到code后，就可以向UAA工程申请access_token
+
+http://localhost:53020/uaa/oauth/token POST
+client_id:c1
+client_secret:secret
+grant_type:authorization_code
+code:FUOn4w
+redirect_uri:https://www.baidu.com/
+返回
+{
+	"access_token": "b9d1c1d0-09a4-4698-b769-77735e5c81ef",
+	"token_type": "bearer",
+	"refresh_token": "6ac14f67-df8e-4991-8cab-c8764d2c522e",
+	"expires_in": 3140,
+	"scope": "all"
+}
+以这种方式就能获得access_token。这里注意，redirect_uri需要与上一步一致。
+这种模式是四种模式中最安全的一种。这种模式下，oauth2认证的三方可以在互不信任的情况下完成
+担保认证过程。而且，这种模式下，access_token是直接在后台服务端之间进行交互，这样也较小了令
+牌泄漏的风险。
+P46页
