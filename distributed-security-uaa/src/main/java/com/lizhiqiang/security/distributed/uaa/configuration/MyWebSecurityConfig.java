@@ -18,17 +18,12 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
  * @date 2020/11/28 9:39
  */
 @EnableWebSecurity
+//这里使用了@EnableGlobalMethodSecurity方法打开了基于注解的方法级别的权限验证
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-//    @Autowired
-//    private ClientDetailsService clientDetailsService;
-//    @Autowired
-//    private TokenStore tokenStore;
-
     @Bean
     public PasswordEncoder passwordEncoder() {
-// return NoOpPasswordEncoder.getInstance();
         return new BCryptPasswordEncoder();
     }
 
@@ -57,6 +52,5 @@ public class MyWebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated() //其他请求需要登录
                 .and()
                 .formLogin(); //可从默认的login页面登录，并且登录后跳转到main.html
-
     }
 }
