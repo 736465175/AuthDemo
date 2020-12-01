@@ -106,7 +106,7 @@ token:1c045432-fc67-4c79-af9c-d782801ce153
 返回
 {
     "aud": [
-        "order"
+        "order"   //授权的资源ID
     ],
     "user_name": "admin",
     "scope": [

@@ -16,8 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("salary")
 public class SalaryController {
 
+    //需要授权客户端拥有salary资源才可以访问 ,授权客户端必须添加这个资源ID，获得的token才能访问该接口resourceIds("order", "salary")
     @GetMapping("query")
-    @PreAuthorize("hasAuthority('salary')")  //需要授权客户端拥有order资源才可以访问
+    @PreAuthorize("hasAuthority('salary')")
     public String query(){
         return "salary info lizhiqiang 20k";
     }
