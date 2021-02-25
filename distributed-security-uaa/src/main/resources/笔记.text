@@ -1,5 +1,6 @@
-1.这种模式是最方便但是也最不安全的模式，代表了授权服务器对客户端的完全互信。因此，这种模式一
+1.客户端认证模式：这种模式是最方便但是也最不安全的模式，代表了授权服务器对客户端的完全互信。因此，这种模式一
   般可以用在授权服务器对客户端完全信任的场景，例如内部系统或者协议合作方系统对接
+  这种模式下的token没有用户资源信息，因此无法访问有用户资源权限的数据
   http://localhost:53020/uaa/oauth/token
   参数
     client_id:c1
@@ -13,7 +14,7 @@
     	"scope": "all"
     }
 
-2.这种模式用户会把用户名和密码直接泄漏给客户端，代表了资源拥有者和授权服务器对客户端的绝
+2.密码模式：这种模式用户会把用户名和密码直接泄漏给客户端，代表了资源拥有者和授权服务器对客户端的绝
   对互信，相信客户端不会做坏事。一般适用于内部开发的客户端的场景
  /uaa/oauth/token?
  client_id=c1&client_secret=secret&grant_type=password&username=admin&password
@@ -27,7 +28,7 @@
  	"scope": "all"
  }
 
-3、简化模式 implicit：
+3、简化模式 implicit：(隐式)
     (1)客户端引导用户，直接访问授权服务器的授权申请地址： http://localhost:53020/uaa/oauth/autho
     rize?client_id=c1&response_type=token&scope=all&redirect_uri=https://www.baidu.com/。此时，
     会跳转到授权服务器的登录页面，需要用户自己输入用户名密码，进行登录
