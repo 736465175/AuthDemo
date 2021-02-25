@@ -65,14 +65,110 @@ code:FUOn4w
 redirect_uri:https://www.baidu.com/
 返回
 {
-	"access_token": "b9d1c1d0-09a4-4698-b769-77735e5c81ef",
-	"token_type": "bearer",
-	"refresh_token": "6ac14f67-df8e-4991-8cab-c8764d2c522e",
-	"expires_in": 3140,
-	"scope": "all"
+    "access_token": "accfac5e-c82c-4d1b-bdca-e3e5702bcccf",
+    "token_type": "bearer",
+    "refresh_token": "5d89e240-503c-486c-a94c-c3a58c4dbf4f",
+    "expires_in": 6705,
+    "scope": "all"
 }
 以这种方式就能获得access_token。这里注意，redirect_uri需要与上一步一致。
 这种模式是四种模式中最安全的一种。这种模式下，oauth2认证的三方可以在互不信任的情况下完成
 担保认证过程。而且，这种模式下，access_token是直接在后台服务端之间进行交互，这样也较小了令
 牌泄漏的风险。
-P46页
+
+
+5、刷新令牌 refresh_token
+最后还一个授权类型refresh_token，这个其实严格来说不算是一种授权类型，只是代表一个刷新令牌
+的端口。当令牌access_token超时后，可以申请这个端口获取更新的令牌。
+http://localhost:53020/uaa/oauth/token
+参数
+    client_id:c1
+    client_secret:secret
+    grant_type:refresh_token
+    refresh_token:5d89e240-503c-486c-a94c-c3a58c4dbf4f
+返回值
+    {
+        "access_token": "1c045432-fc67-4c79-af9c-d782801ce153",
+        "token_type": "bearer",
+        "refresh_token": "5d89e240-503c-486c-a94c-c3a58c4dbf4f",
+        "expires_in": 7199,
+        "scope": "all"
+    }
+
+
+
+6、验证令牌接口
+这个接口也是oauth的统一定义端口，他的权限不在客户端配置中配置，而是在
+AuthorizationServerSecurityConfigurer对象中配置。这里只是一并进行测试：
+http://localhost:53020/uaa/oauth/check_token
+token:1c045432-fc67-4c79-af9c-d782801ce153
+
+返回
+{
+    "aud": [
+        "order"   //授权的资源ID
+    ],
+    "user_name": "admin",
+    "scope": [
+        "all"
+    ],
+    "active": true,
+    "exp": 1606643462,
+    "authorities": [
+        "mobile",
+        "salary"
+    ],
+    "client_id": "c1"
+}
+
+
+5 资源服务配置
+前面完成的授权服务实际上是OAuth协议中最复杂的部分，他规定了三方在互不信任的假设下如何进行
+担保认证。而到了资源服务这一步，其实就比较简单了。资源服务只要在访问资源之前，进行令牌验证
+即可。
+5.1 打开@EnableResourceServer注解
+5.2 资源服务器核心配置
+    然后，与之前的配置方式类似，Spring Security也提供了ResourceServerConfigurerAdapter适配器来
+    协助完成资源服务器的配置。这个适配器提供了多个configure方法，对以下两个核心对象进行配置。
+    ResourceServerSecurityConfigurer中主要包含：
+    tokenServices : ResourceServerTokenServices类的实例，用来实现令牌服务，即如何验证令
+    牌。
+    tokenStore ： TokenStore类的实例，指定令牌如何访问，与tokenServices配置可选
+    resourceId ： 这个资源服务的ID，是可选的。但是推荐设置并在授权服务中进行验证。
+    其他的扩展属性例如tokenExtractor令牌提取器用来提取请求中的令牌。
+    HttpSecurity，这个配置与Spring Security类似：
+    authorizeRequests()方法验证请求。antMatchers方法匹配访问路径。access()方法配置需要的权
+    限。
+    .sessionManagement()方法配置session管理策略。
+    其他自定义权限保护规则也通过HttpSecurity来配置。
+    @EnableResourceServer注解会自动增加一个类型为OAuth2AuthenticationProcessingFilter的过滤器
+    链。
+    ResourceServerConfig 示例内容如下：
+        com.lizhiqiang.security.distributed.uaa.configuration.MyResourceServerConfig
+
+5.3 编写资源 然后我们编写一个简单的薪水查询接口：
+    com.lizhiqiang.security.distributed.uaa.controller.SalaryController
+
+5.4 添加安全访问控制
+以Spring Security的方式添加安全访问控制策略
+    这里使用了@EnableGlobalMethodSecurity方法打开了基于注解的方法级别的权限验证
+    com.lizhiqiang.security.distributed.uaa.configuration.MyWebSecurityConfig.configure
+
+5.5 资源访问测试
+到这里，我们的资源服务器就算配置完成了。 下面我们来访问资源服务器的salary接口进行测试。测试
+时要注意，在向资源服务器提交access_token时，需要在请求的headers上添加一个Authorization参数
+来提交令牌，而令牌的内容需要先加上token的类型Bearer，然后空格，再加上access_token。
+首先，直接访问资源路径不带任何参数。http://localhost:53021/resource/salary/query 会返回一个错
+误内容：
+
+
+
+
+
+
+
+
+
+
+
+

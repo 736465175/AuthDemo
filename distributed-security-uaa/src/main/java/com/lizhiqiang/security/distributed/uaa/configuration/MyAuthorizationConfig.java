@@ -71,7 +71,8 @@ public class MyAuthorizationConfig extends AuthorizationServerConfigurerAdapter 
             .secret(new BCryptPasswordEncoder().encode("secret")) //客户端秘钥
             .scopes("all") //客户端拥有的资源列表
             .authorizedGrantTypes("authorization_code", "password", "client_credentials", "implicit", "refresh_token") //客户端可以使用的授权类型,其实是代表了OAuth授权三方的不同互信程度
-            .resourceIds("order") //客户端拥有的资源列表
+            .resourceIds("salary") //客户端拥有的资源列表
+//            .resourceIds("order")
             .autoApprove(false) //跳转到授权页面
             .redirectUris("https://www.baidu.com/"); //回调地址
             // .and() //继续注册其他客户端
