@@ -162,7 +162,9 @@ token:1c045432-fc67-4c79-af9c-d782801ce153
 首先，直接访问资源路径不带任何参数。http://localhost:53021/resource/salary/query 会返回一个错
 误内容：
 
-
+5.6配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
+services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
+//配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
 
 
 

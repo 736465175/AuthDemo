@@ -31,7 +31,7 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
 
     private static final String RESOURCE_SALARY = "salary";
 
-    //配置access_token远程验证策略
+    //配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
     public ResourceServerTokenServices tokenServices(){
         RemoteTokenServices services = new RemoteTokenServices();
         services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
