@@ -17,6 +17,9 @@ import org.springframework.security.oauth2.provider.code.InMemoryAuthorizationCo
 import org.springframework.security.oauth2.provider.token.AuthorizationServerTokenServices;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
+import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
+
+import javax.annotation.Resource;
 
 //在使用OAuth2时，Spring Security也提供了一个类似的适配器来帮助我们完成配置
 //这三个配置也是整个授权认证服务中最核心的配置
@@ -146,11 +149,18 @@ public class MyAuthorizationConfig extends AuthorizationServerConfigurerAdapter 
         //JdbcAuthorizationCodeServices
     }
 
+    @Resource
+    private JwtAccessTokenConverter jwtAccessTokenConverter;
+
+
     public AuthorizationServerTokenServices tokenService() {
         DefaultTokenServices service = new DefaultTokenServices();
         service.setClientDetailsService(clientDetailsService); //客户端详情服务
         service.setSupportRefreshToken(true); //允许令牌自动刷新
-        service.setTokenStore(tokenStore); //令牌存储策略-内存
+//        service.setTokenStore(tokenStore); //令牌存储策略-内存
+        //使用JWT令牌
+        service.setTokenStore(tokenStore); //令牌存储策略-JwtTokenStore
+        service.setTokenEnhancer(jwtAccessTokenConverter);
         service.setAccessTokenValiditySeconds(7200); // 令牌默认有效期2小时
         service.setRefreshTokenValiditySeconds(259200); // 刷新令牌默认有效期3天
         return service;

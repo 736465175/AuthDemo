@@ -1,4 +1,4 @@
-package com.lizhiqiang.security.distributed.uaa.configuration;
+package com.lizhiqiang.security.distributed.salary.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

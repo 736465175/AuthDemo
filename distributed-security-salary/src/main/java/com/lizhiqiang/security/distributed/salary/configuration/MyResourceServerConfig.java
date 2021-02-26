@@ -5,8 +5,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.token.RemoteTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenStore;
+
+import javax.annotation.Resource;
 
 /**
  这里需要注意的是ResourceServerSecurityConfigurer的tokenServices()方法，设定了一个token的管
@@ -32,18 +33,24 @@ public class MyResourceServerConfig extends ResourceServerConfigurerAdapter {
     private static final String RESOURCE_SALARY = "salary";
 
     //配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
-    public ResourceServerTokenServices tokenServices(){
-        RemoteTokenServices services = new RemoteTokenServices();
-        services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
-        services.setClientId("c1");
-        services.setClientSecret("secret");
-        return services;
-    }
+//    public ResourceServerTokenServices tokenServices(){
+//        RemoteTokenServices services = new RemoteTokenServices();
+//        services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
+//        services.setClientId("c1");
+//        services.setClientSecret("secret");
+//        return services;
+//    }
+
+
+    //使用JWT令牌就不再需要远程解析服务了，资源服务可以在本地进行解析
+    @Resource
+    private TokenStore tokenStore;
 
     @Override
     public void configure(ResourceServerSecurityConfigurer resources) {
         resources.resourceId(RESOURCE_SALARY)  //资源ID
-                 .tokenServices(tokenServices()) //使用远程服务验证令牌的服务
+//                 .tokenServices(tokenServices()) //使用远程服务验证令牌的服务
+                .tokenStore(tokenStore) ////使用JWT令牌验证，就不需要调用远程服务了，用本地验证方式就可以了
                  .stateless(true); //无状态模式
     }
 

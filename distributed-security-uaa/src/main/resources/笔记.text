@@ -16,7 +16,7 @@
 
 2.密码模式：这种模式用户会把用户名和密码直接泄漏给客户端，代表了资源拥有者和授权服务器对客户端的绝
   对互信，相信客户端不会做坏事。一般适用于内部开发的客户端的场景
- /uaa/oauth/token?
+ http://localhost:53020/uaa/oauth/token?
  client_id=c1&client_secret=secret&grant_type=password&username=admin&password
  =admin
 
@@ -27,6 +27,7 @@
  	"expires_in": 7199,
  	"scope": "all"
  }
+
 
 3、简化模式 implicit：(隐式)
     (1)客户端引导用户，直接访问授权服务器的授权申请地址： http://localhost:53020/uaa/oauth/autho
@@ -44,6 +45,7 @@
     方式返回的。
     这种模式下，oauth三方的数据已经进行了隔离。这种模式一般用于没有服务端的第三方单页面应用，
     这样可以在JS里直接相应access_token。
+
 
 4、授权码模式 authorization_code ：
     相比上面的简化模式，就是在后面第4步，授权服务器先返回给客户端一个授权码，也就是
@@ -163,8 +165,100 @@ token:1c045432-fc67-4c79-af9c-d782801ce153
 误内容：
 
 5.6配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
-services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
-//配置access_token远程验证策略,这样的远程验证会造成性能瓶颈，就需要引入 JWT令牌模式
+access_token远程验证策略 services.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
+access_token远程验证策略：
+    1.Authentication Server 将令牌颁发给 --> Client
+    2.Client  带上令牌，请求资源服务器查看资源 --> ResourceServer
+    3.ResourceServer --> 拿到令牌后远程调用 Authentication Server验证令牌
+    4.Authentication Server验证令牌  -->验证结果返回给   ResourceServer
+
+5.7 JWT令牌模式：（资源服务自行验证令牌）
+    1.Authentication Server 将令牌颁发给 --> Client
+    2.Client  带上令牌，请求资源服务器查看资源 --> ResourceServer
+    3.ResourceServer自行验证令牌
+    原理：那令牌本身就包含了客户的详细信息，这样资源服务不用依赖授权服务就可以完成令牌解析
+
+    JWT令牌全称JSON WebToken，它定义了一种简单的、自包含的协议格式，用于在通信双方传递json对象，传递的信息
+        经过数字签名，可以被验证和信任。JWT可以使用 HMAC算法或者使用RSA算法的公私钥来签名，防止被篡改。
+
+    JWT令牌的优点：
+        基于json，非常方便解析
+        可以在令牌中自定义丰富的内容，易扩展
+        通过非对称加密算法及数字签名技术，JWT防止篡改，安全性高
+        资源服务使用JWT可以不依赖于认证服务，自己完成解析
+    但是也有一个很大的缺点，就是JWT令牌较长，占据的存储空间比较大
+
+    JWT令牌结构
+        1.JWT令牌由三个部分组成，每部分中间使用点 (.) 分隔，例如 Header.Payload.Signature
+            头部包括令牌的类型(JWT)以及使用的哈希算法(如HMAC SHA256 RSA)。例如
+                {"alg":"HS256","typ":"JWT"}
+            将上面的内容使用Base64URL编码，就得到了JWT令牌的第一个部分
+        2.Payload
+            第二部分是负载，内容也是一个对象，他是存放有效信息的地方，他可以存放JWT提供的现有字段，例
+            如 iss(签发者)，exp(过期时间戳)，sub(面向的用户)等，也可以自定义字段。此部分不建议存放敏感信
+            息，因为此部分可以解码还原出原始内容
+            最后将这部分JSON内容使用Base64URL编码，就得到了JWT令牌的第二个部分
+        3.Signature
+            第三部分是签名，此部分用于防止JWT内容被篡改
+            这个部分使用Base64url将前两部分进行编码，编码后使用点(.)连接组成字符串，最后使用header中声
+            明的签名算法进行签名
+
+    配置JWT令牌服务
+        在UAA中，只需要配置JWT令牌服务即可生成JWT格式的令牌 注入JwtTokenStore
+        1.修改 com.lizhiqiang.security.distributed.uaa.configuration.TokenConfig
+        2.在MyAuthorizationConfig中使用注入的accessTokenConvert声明tokenService
+
+    JWT令牌验证:
+        然后我们到资源服务器中配置使用JWT令牌
+        1.将授权服务中的TokenConfig类全部拷贝到资源服务中。这也是因为资源服务需要与授权服务保持相同的Token
+        2.在MyResourceServerConfig中屏蔽ResourceServerTokenServices
+            MyResourceServerConfig.configure 方法修改为使用JwtTokenStore
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
